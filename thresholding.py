@@ -79,10 +79,11 @@ def region_growing(image, threshold, neighbourhood=8):
 
 def get_segments(rg_img):
     segments_ids = np.unique(rg_img)[1:]
+    cropped_segments_list = []
     segments_list = []
     for id in segments_ids:
+        cropped_segment_data = []
         segment_data = []
-
         segment = np.zeros(rg_img.shape)
 
         segment[rg_img != id] = 0
@@ -93,10 +94,13 @@ def get_segments(rg_img):
             cropped_segment, segment_coords = crop_segment(segment)
             # cv2.imshow("segment", cropped_segment)
             # cv2.waitKey()
-            segment_data.append(cropped_segment)
+            cropped_segment_data.append(cropped_segment)
+            cropped_segment_data.append(segment_coords)
+            cropped_segments_list.append(cropped_segment_data)
+            segment_data.append(segment)
             segment_data.append(segment_coords)
             segments_list.append(segment_data)
-    return segments_list
+    return cropped_segments_list, segments_list
 
 
 def crop_segment(segment, space=0.1):

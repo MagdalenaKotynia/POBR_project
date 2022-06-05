@@ -187,8 +187,9 @@ def compute_reference_metrics(img_dir, option):
     mean_vals = np.mean(reference_features, axis=0)
     max_vals = np.max(reference_features, axis=0)
     min_vals = np.min(reference_features, axis=0)
+    std_vals = np.std(reference_features, axis=0)
 
-    results = [mean_vals, max_vals, min_vals]
+    results = [mean_vals, max_vals, min_vals, std_vals]
 
     return results
 
