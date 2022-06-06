@@ -156,7 +156,6 @@ def compute_reference_metrics(img_dir, option):
             img = binarize(img, threshold=80)
 
             cropped_img, segment_coords = crop_segment(img)
-           # cv2.imshow("segment", cropped_img)
             img_features = compute_features(cropped_img)
             reference_features = np.append(reference_features, img_features, axis=0)
     reference_features = np.reshape(reference_features, (int(len(reference_features)/len(img_features)), len(img_features)))
@@ -169,10 +168,6 @@ def compute_reference_metrics(img_dir, option):
 
     return results
 
-# reference_main = compute_reference_metrics(
-#         'C:/Users/magda/OneDrive/Dokumenty/Informatyka mgr/3 sem/POBR/POBR_projekt/obrazy/references/', option='main')
-# reference_small = compute_reference_metrics(
-#         'C:/Users/magda/OneDrive/Dokumenty/Informatyka mgr/3 sem/POBR/POBR_projekt/obrazy/references/', option='small')
 #
 
 
