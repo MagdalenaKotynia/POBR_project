@@ -8,45 +8,41 @@ import numpy as np
 from utils import median_filter, max_filter
 
 
-def detect(image_path):
+def detect(filename):
+    image_path = "obrazy/" + filename
     detected_segment_coords = []
     detected_conditions = []
     detected_segments = []
     img = read_image(image_path, max_size=600)
     #img = median_filter(img, filter_size=5)
-    segmented_img, seeds = region_growing(img, threshold= 9, neighbourhood=4) #T = 7 dobre dla o1
-    print("Wyznaczono punkty startowe do segmentacji")
-    segmented_img = median_filter(segmented_img, filter_size=3)
-
+    segmented_img1, seeds = region_growing(img, threshold= 9, neighbourhood=4) #T = 7 dobre dla o1
+    segmented_img = median_filter(segmented_img1, filter_size=3)
     cropped_segments, segments = get_segments(segmented_img)
-    print("Wyznaczono segmenty")
-    reference_main = compute_reference_metrics(
-        'C:/Users/magda/OneDrive/Dokumenty/Informatyka mgr/3 sem/POBR/POBR_projekt/obrazy/references/', option='main')
-    reference_small = compute_reference_metrics(
-        'C:/Users/magda/OneDrive/Dokumenty/Informatyka mgr/3 sem/POBR/POBR_projekt/obrazy/references/', option='small')
-    reference_whole = compute_reference_metrics(
-        'C:/Users/magda/OneDrive/Dokumenty/Informatyka mgr/3 sem/POBR/POBR_projekt/obrazy/references/', option='whole')
+
+    reference_main = compute_reference_metrics("obrazy/references/", option='main')
+    reference_small = compute_reference_metrics('obrazy/references/', option='small')
+    reference_whole = compute_reference_metrics('obrazy/references/', option='whole')
     for cropped_segment, segment in zip(cropped_segments, segments):
-        #cropped_segment[0] = max_filter(cropped_segment[0], filter_size=3)
-        #cv2.imshow("segment", segment[0])
         segment_coords, condition, detected_segment = check_partial_conditions(cropped_segment, reference_main, reference_small)
         if segment_coords is not None:
             detected_segment_coords.append(segment_coords)
             detected_conditions.append(condition)
             detected_segments.append(segment[0])
     detected_seg_data = zip(detected_segment_coords, detected_conditions, detected_segments)
-    print("oceniono wszystkie segmenty")
+    print("Zakończono wstępną ocenę.")
     apple_segments_coords, apple_conditions, apple_segments = check_whole_conditions(detected_seg_data, reference_whole)
 
-    draw_bboxes(img, detected_segment_coords, option='parts')
+    draw_bboxes(img, detected_segment_coords, option='parts', title="Wstępna detekcja", save=False,
+                filename= "wstepna_detekcja_" + filename)
     if apple_segments is not None:
-        draw_bboxes(img, apple_segments_coords, option='whole')
-    #merge_segments(segments[4], segments[5])
-    cv2.imshow("segmented_img", segmented_img)
+        draw_bboxes(img, apple_segments_coords, option='whole', title="Końcowa detekcja", save=False,
+                    filename="koncowa_detekcja_" + filename)
+    cv2.imshow("Obraz po segmentacji", segmented_img1)
     cv2.waitKey(0)
+    cv2.imwrite("obrazy/wyniki/segmentacja_" + filename, segmented_img1)
 
 
-def draw_bboxes(img, segments_coords, option='parts'):
+def draw_bboxes(img, segments_coords, option='parts', title=None, save=False, filename=None):
     if option == 'parts':
         color = 'r'
     if option == 'whole':
@@ -60,7 +56,12 @@ def draw_bboxes(img, segments_coords, option='parts'):
         width = seg_coords[0] - x
         rect = patches.Rectangle((x, y), width, height, linewidth=1, edgecolor=color, facecolor='none')
         ax.add_patch(rect)
-    plt.show()
+    plt.title(title)
+    plt.axis('off')
+    plt.show(block=False)
+    if save is True:
+        plt.savefig("obrazy/wyniki/" + filename)
+
 
 
 def check_partial_conditions(segment, ref_main, ref_small):
@@ -83,14 +84,16 @@ def check_partial_conditions(segment, ref_main, ref_small):
     #     condition = 'small'
     #     segment_coords = segment[1]
     #     return segment_coords, condition, segment[0]
-    if np.count_nonzero(main_condition) > 3:
-        cond = 'main'
-        segment_coords = segment[1]
-        return segment_coords, cond, segment[0]
+
     if np.count_nonzero(small_condition) > 3:
         cond = 'small'
         segment_coords = segment[1]
         return segment_coords, cond, segment[0]
+    if np.count_nonzero(main_condition) > 3: #3 jest spoko
+        cond = 'main'
+        segment_coords = segment[1]
+        return segment_coords, cond, segment[0]
+
     else:
         return None, None, None
 
@@ -113,12 +116,12 @@ def check_whole_conditions(seg_data, whole_refs):
                     # max_condition = features < whole_refs[1]
                     # whole_conditions = np.min(np.concatenate((min_condition, max_condition)).reshape((2, 5)), axis=0)
                     whole_condition = np.abs(features - whole_refs[0]) < whole_refs[3]
-                    if np.count_nonzero(whole_condition) > 3:
+                    if np.count_nonzero(whole_condition) > 2:
                         condition = 'whole'
                         detected_segments_coords.append(new_segment_coords)
                         detected_conditions.append(condition)
                         detected_segments.append(new_segment)
-
+    print("Zakończono finalną ocenę.")
     return detected_segments_coords, detected_conditions, detected_segments
 
 
@@ -142,4 +145,3 @@ def merge_segments(seg_1, seg_2):
 
 
 
-detect('obrazy\o2.jpg')
