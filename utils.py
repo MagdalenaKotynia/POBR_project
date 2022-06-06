@@ -3,27 +3,10 @@ from matplotlib import pyplot as plt
 import cv2
 
 
-def read_image(img_path, max_size = 800):
-    img = cv2.imread(img_path)
-    h = img.shape[0]
-    w = img.shape[1]
-    bigger_size = np.max([h, w])
-    if bigger_size > max_size:
-        if bigger_size == h:
-            new_w = max_size
-            new_h = int(w/(h/max_size))
-        if bigger_size == w:
-            new_h = max_size
-            new_w = int(h/(w/max_size))
-        img = cv2.resize(img, (new_h, new_w), interpolation = cv2.INTER_AREA)
-    return img
-
-
 def rgb2grey(image):
     #for rgb images
     img = np.copy(image)
     grey = img[:, :, 0] * 0.2989 //1 + img[:, :, 1] * 0.5870 //1 + img[:, :, 2] * 0.1140 //1
-    print(grey)
     return grey.astype(np.uint8)
 
 
@@ -31,7 +14,6 @@ def bgr2grey(image):
     #for bgr images
     img = np.copy(image)
     grey = img[:, :, 2] * 0.2989 //1 + img[:, :, 1] * 0.5870 //1 + img[:, :, 0] * 0.1140 //1
-    print(grey)
     return grey.astype(np.uint8)
 
 
@@ -166,3 +148,22 @@ def min_filter(image, filter_size=7):
         min_image = min_image[filter_size // 2: -filter_size // 2 + 1, filter_size // 2: -filter_size // 2 + 1]
     return min_image
 
+
+def save_img(filename, img):
+    cv2.imwrite("obrazy/wyniki/" + filename, img)
+
+
+def read_image(img_path, max_size = 600):
+    img = cv2.imread(img_path)
+    h = img.shape[0]
+    w = img.shape[1]
+    bigger_size = np.max([h, w])
+    if bigger_size > max_size:
+        if bigger_size == h:
+            new_w = max_size
+            new_h = int(w/(h/max_size))
+        if bigger_size == w:
+            new_h = max_size
+            new_w = int(h/(w/max_size))
+        img = cv2.resize(img, (new_h, new_w), interpolation = cv2.INTER_AREA)
+    return img

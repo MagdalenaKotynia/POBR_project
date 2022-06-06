@@ -3,7 +3,7 @@ import os
 import numpy as np
 from utils import read_image,binarize
 from thresholding import crop_segment
-import cv2
+
 
 def indices_mat(image):
     y_len = image.shape[0]
@@ -48,50 +48,34 @@ def M(image, p, q):
     return M
 
 
-def M1(image):
-    M20 = M(image, 2, 0)
-    M02 = M(image, 0, 2)
-    m2 = m(image, 0, 0) ** 2
-    return (M(image, 2, 0) + M(image, 0, 2)) / m(image, 0, 0) ** 2
-
-
-def M7(image):
-    M20 = M(image, 2, 0)
-    M02 = M(image, 0, 2)
-    M11 = M(image, 1, 1) ** 2
-    m4 = (m(image, 0, 0)) ** 4
-    # return ((M(image, 2, 0) * M(image, 0, 2) - M(image, 1, 1) ** 2) / m(image, 0, 0) ** 4)
-    return (M(image, 2,0)*M(image, 0,2)-M(image, 1, 1)**2)/m(image, 0, 0)**4
-
-
 def compute_features(image):
     M1 = (M(image, 2, 0) + M(image, 0, 2)) / m(image, 0, 0) ** 2
 
-    M2 = ((M(image, 2, 0) - M(image, 0, 2)) ** 2 + 4 * M(image, 1, 1) ** 2 )/ m(image, 0, 0) ** 4
-
-    M3 = ((M(image, 3,0) - 3 * M(image, 1, 2))**2 + (3*M(image, 2, 1) - M(image, 0, 3))**2) / m(image, 0, 0)**5
-
-    M4 = ((M(image, 3, 0) + M(image, 1, 2))**2 + (M(image, 2, 1) + M(image, 0, 3))**2) / m(image, 0, 0)**5
-
-    M5 = ((M(image, 3, 0) - 3 * M(image, 1, 2)) * (M(image, 3, 0) + M(image, 1, 2)) *\
-          ((M(image, 3, 0)+ M(image, 1, 2))**2 - 3 * (M(image, 2, 1) + M(image, 0, 3))**2) +\
-        (3 * M(image, 2, 1) - M(image, 0, 3)) * (M(image, 2, 1) + M(image, 0, 3)) *\
-        (3 * (M(image, 3, 0) + M(image, 1, 2))**2 - (M(image, 2, 1) + M(image, 0, 3))**2)) / m(image, 0, 0) ** 10
-
-    M6 = ((M(image, 2, 0) - M(image, 0, 2))*((M(image, 3, 0) + M(image, 1, 2))**2 - (M(image, 2, 1) + M(image, 0, 3))**2) +\
-                 4 * M(image, 1, 1) * (M(image, 3, 0) + M(image, 1, 2)) * (M(image, 2, 1) + M(image, 0, 3))) / m(image, 0, 0)**7\
+    # M2 = ((M(image, 2, 0) - M(image, 0, 2)) ** 2 + 4 * M(image, 1, 1) ** 2 )/ m(image, 0, 0) ** 4
+    #
+    # M3 = ((M(image, 3,0) - 3 * M(image, 1, 2))**2 + (3*M(image, 2, 1) - M(image, 0, 3))**2) / m(image, 0, 0)**5
+    #
+    # M4 = ((M(image, 3, 0) + M(image, 1, 2))**2 + (M(image, 2, 1) + M(image, 0, 3))**2) / m(image, 0, 0)**5
+    #
+    # M5 = ((M(image, 3, 0) - 3 * M(image, 1, 2)) * (M(image, 3, 0) + M(image, 1, 2)) *\
+    #       ((M(image, 3, 0)+ M(image, 1, 2))**2 - 3 * (M(image, 2, 1) + M(image, 0, 3))**2) +\
+    #     (3 * M(image, 2, 1) - M(image, 0, 3)) * (M(image, 2, 1) + M(image, 0, 3)) *\
+    #     (3 * (M(image, 3, 0) + M(image, 1, 2))**2 - (M(image, 2, 1) + M(image, 0, 3))**2)) / m(image, 0, 0) ** 10
+    #
+    # M6 = ((M(image, 2, 0) - M(image, 0, 2))*((M(image, 3, 0) + M(image, 1, 2))**2 - (M(image, 2, 1) + M(image, 0, 3))**2) +\
+    #              4 * M(image, 1, 1) * (M(image, 3, 0) + M(image, 1, 2)) * (M(image, 2, 1) + M(image, 0, 3))) / m(image, 0, 0)**7\
 
     M7 = (M(image, 2, 0) * M(image, 0, 2) - M(image, 1, 1)**2) / m(image, 0, 0)**4
 
-    M8 = (M(image, 3, 0) * M(image, 1, 2) +  M(image, 2, 1) * M(image, 0, 3) - M(image, 1, 2)**2 - M(image, 2, 1)**2) / \
-         M(image, 0, 0)**5
-
-    M9 = (M(image, 2, 0) * (M(image, 2, 1) * M(image, 0, 3) - M(image, 1, 2)**2) +\
-                 M(image, 0, 2) * (M(image, 0, 3) * M(image, 1, 2) - M(image, 2, 1)**2) -\
-                 M(image, 1, 1) * (M(image, 3, 0) * M(image, 0, 3) - M(image, 2, 1) * M(image, 1, 2))) / m(image, 0, 0)**7\
-
-    M10 = ((M(image, 3, 0) * M(image, 0, 3) - M(image, 1, 2) * M(image, 2, 1))**2 -\
-                  4*(M(image, 3, 0)*M(image, 1, 2) - M(image, 2, 1)**2)*(M(image, 0, 3) * M(image, 2, 1) - M(image, 1, 2))) / m(image, 0, 0)**10
+    # M8 = (M(image, 3, 0) * M(image, 1, 2) +  M(image, 2, 1) * M(image, 0, 3) - M(image, 1, 2)**2 - M(image, 2, 1)**2) / \
+    #      M(image, 0, 0)**5
+    #
+    # M9 = (M(image, 2, 0) * (M(image, 2, 1) * M(image, 0, 3) - M(image, 1, 2)**2) +\
+    #              M(image, 0, 2) * (M(image, 0, 3) * M(image, 1, 2) - M(image, 2, 1)**2) -\
+    #              M(image, 1, 1) * (M(image, 3, 0) * M(image, 0, 3) - M(image, 2, 1) * M(image, 1, 2))) / m(image, 0, 0)**7\
+    #
+    # M10 = ((M(image, 3, 0) * M(image, 0, 3) - M(image, 1, 2) * M(image, 2, 1))**2 -\
+    #               4*(M(image, 3, 0)*M(image, 1, 2) - M(image, 2, 1)**2)*(M(image, 0, 3) * M(image, 2, 1) - M(image, 1, 2))) / m(image, 0, 0)**10
 
     w3 = W3(image)
 
@@ -99,8 +83,7 @@ def compute_features(image):
 
 
     #features = [M1, M2, M3, M4, M5, M6, M7, M8, M9, M10, w3, w9]
-    #features = [M1, M7, w3, w9]
-    features = [M1, M7, M8, w3, w9]
+    features = [M1, M7, w3, w9]
     return features
 
 
@@ -143,7 +126,6 @@ def circuit(image):
 def W3(image):
     L = circuit(image)
     S = area(image)
-
     w3 = L / (2 * math.sqrt(math.pi * S)) - 1
     return w3
 
@@ -156,16 +138,10 @@ def W9(image):
 
 
 def central_i(image):
-    # if image.ndim == 2:
-    #     image = image.reshape(image.shape + (1,))
-    #     print(image.shape)
     return math.floor(m(image, 1, 0) / m(image, 0, 0))
 
 
 def central_j(image):
-    # if image.ndim == 2:
-    #     image = image.reshape(image.shape + (1,))
-    #     print(image.shape)
     return math.floor(m(image, 0, 1) / m(image, 0, 0))
 
 
@@ -180,22 +156,18 @@ def compute_reference_metrics(img_dir, option):
             img = binarize(img, threshold=80)
 
             cropped_img, segment_coords = crop_segment(img)
-           # cv2.imshow("segment", cropped_img)
             img_features = compute_features(cropped_img)
             reference_features = np.append(reference_features, img_features, axis=0)
     reference_features = np.reshape(reference_features, (int(len(reference_features)/len(img_features)), len(img_features)))
     mean_vals = np.mean(reference_features, axis=0)
     max_vals = np.max(reference_features, axis=0)
     min_vals = np.min(reference_features, axis=0)
+    std_vals = np.std(reference_features, axis=0)
 
-    results = [mean_vals, max_vals, min_vals]
+    results = [mean_vals, max_vals, min_vals, std_vals]
 
     return results
 
-# reference_main = compute_reference_metrics(
-#         'C:/Users/magda/OneDrive/Dokumenty/Informatyka mgr/3 sem/POBR/POBR_projekt/obrazy/references/', option='main')
-# reference_small = compute_reference_metrics(
-#         'C:/Users/magda/OneDrive/Dokumenty/Informatyka mgr/3 sem/POBR/POBR_projekt/obrazy/references/', option='small')
 #
 
 

@@ -20,8 +20,7 @@ class Queue:
 
 
 def get_seeds(img):
-    neighbourhood_size = 50 #100 dobre dla o1 i o5 (50 tez dobre ale wykrywa wtedy wiecej innych obiektow)
-    #thresold =150 było dobre na o1
+    neighbourhood_size = 50
     threshold = 120
     data_max = max_filter(img, neighbourhood_size)
     maxima = (img == data_max)
@@ -31,6 +30,7 @@ def get_seeds(img):
     seeds = maxima.nonzero()
     seeds = np.asarray(seeds)
     seeds = np.transpose(seeds)
+    print("Wyznaczono punkty startowe do segmentacji.")
     return seeds
 
 
@@ -79,10 +79,11 @@ def region_growing(image, threshold, neighbourhood=8):
 
 def get_segments(rg_img):
     segments_ids = np.unique(rg_img)[1:]
+    cropped_segments_list = []
     segments_list = []
     for id in segments_ids:
+        cropped_segment_data = []
         segment_data = []
-
         segment = np.zeros(rg_img.shape)
 
         segment[rg_img != id] = 0
@@ -91,12 +92,14 @@ def get_segments(rg_img):
             pass
         else:
             cropped_segment, segment_coords = crop_segment(segment)
-            # cv2.imshow("segment", cropped_segment)
-            # cv2.waitKey()
-            segment_data.append(cropped_segment)
+            cropped_segment_data.append(cropped_segment)
+            cropped_segment_data.append(segment_coords)
+            cropped_segments_list.append(cropped_segment_data)
+            segment_data.append(segment)
             segment_data.append(segment_coords)
             segments_list.append(segment_data)
-    return segments_list
+    print("Wyznaczono segmenty.")
+    return cropped_segments_list, segments_list
 
 
 def crop_segment(segment, space=0.1):
