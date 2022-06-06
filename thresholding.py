@@ -22,7 +22,7 @@ class Queue:
 def get_seeds(img):
     neighbourhood_size = 50 #100 dobre dla o1 i o5 (50 tez dobre ale wykrywa wtedy wiecej innych obiektow)
     #thresold =150 było dobre na o1
-    threshold = 120
+    threshold = 120 #120 jest spoko (oprocz malych obiektow)
     data_max = max_filter(img, neighbourhood_size)
     maxima = (img == data_max)
     data_min = min_filter(img, neighbourhood_size)
@@ -88,6 +88,7 @@ def get_segments(rg_img):
 
         segment[rg_img != id] = 0
         segment[rg_img == id] = 255
+        #segment = max_filter(segment, filter_size=3)
         if np.count_nonzero(segment == 255) < 100:
             pass
         else:
